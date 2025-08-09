@@ -7,6 +7,9 @@ let package = Package(
         .library(name: "Midi2Core", targets: ["Midi2Core"]),
         .executable(name: "midi2-export", targets: ["midi2-export"])
     ],
+    dependencies: [
+        .package(url: "https://github.com/PureSwift/Cairo.git", branch: "master")
+    ],
     targets: [
         .systemLibrary(
             name: "CPoppler",
@@ -17,7 +20,10 @@ let package = Package(
         ),
         .target(
             name: "Midi2Core",
-            dependencies: ["CPoppler"]
+            dependencies: [
+                "CPoppler",
+                .product(name: "Cairo", package: "Cairo")
+            ]
         ),
         .executableTarget(
             name: "midi2-export",
