@@ -9,6 +9,9 @@ let package = Package(
         .executable(name: "MIDI2SpecReader", targets: ["MIDI2SpecReader"]),
         .executable(name: "midi2-export", targets: ["midi2-export"]),
     ],
+    dependencies: [
+        .package(url: "https://github.com/apple/swift-argument-parser", from: "1.2.0"),
+    ],
     targets: [
         .target(
             name: "Midi2Core",
@@ -21,8 +24,14 @@ let package = Package(
         ),
         .executableTarget(
             name: "midi2-export",
-            dependencies: ["Midi2Core"],
-            path: "Sources/midi2-export"
+            dependencies: [
+                "Midi2Core",
+                .product(name: "ArgumentParser", package: "swift-argument-parser")
+            ],
+            path: "Sources/midi2-export",
+            resources: [
+                .copy("../../Inputs")
+            ]
         ),
         .testTarget(
             name: "Midi2CoreTests",

@@ -1,6 +1,12 @@
 import Foundation
-import CoreGraphics
 import Midi2Core
+import ArgumentParser
+#if canImport(CoreGraphics)
+import CoreGraphics
+#else
+// Fallback CGFloat for non-CoreGraphics platforms
+typealias CGFloat = Double
+#endif
 
 struct Args {
     var out: URL
@@ -10,40 +16,13 @@ struct Args {
     var docs: [URL]
 }
 
-func parseArgs() -> Args {
-    var out = URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent("Artifacts", isDirectory: true)
-    var dpi: CGFloat = 220
-    var strict = false
-    var verbose = 0
-    var docs: [URL] = []
-    var it = CommandLine.arguments.dropFirst().makeIterator()
-    while let a = it.next() {
-        switch a {
-        case "--out":
-            if let p = it.next() { out = URL(fileURLWithPath: p, isDirectory: true) }
-        case "--dpi":
-            if let v = it.next(), let d = Double(v) { dpi = CGFloat(d) }
-        case "--strict":
-            strict = true
-        case "-v", "--verbose":
-            verbose += 1
-        default:
-            if a.hasPrefix("-") { fputs("Unknown flag: \(a)\n", stderr); exit(2) }
-            docs.append(URL(fileURLWithPath: a))
-        }
-    }
-    return Args(out: out, dpi: dpi, strict: strict, verbose: verbose, docs: docs)
-}
-
 let EXIT_FILE_NOT_FOUND: Int32 = 66
 let EXIT_PARSE_ERROR: Int32 = 65
 let EXIT_IO_ERROR: Int32 = 74
 
-func main() throws {
-    let args = parseArgs()
+func export(args: Args) throws {
     if args.docs.isEmpty {
-        print("Usage: midi2-export [--out <dir>] [--dpi <n>] [--strict] [--verbose] <doc1.pdf> [doc2.pdf ...]")
-        exit(64)
+        throw ValidationError("No documents specified")
     }
 
     func log(_ message: String, level: Int = 1) {
@@ -106,8 +85,38 @@ func main() throws {
 #endif
 }
 
-do { try main() } catch {
-    fputs("Error: \(error)\n", stderr)
-    exit(1)
+@main
+struct MIDI2Export: ParsableCommand {
+    static var configuration = CommandConfiguration(
+        commandName: "midi2-export",
+        abstract: "Export MIDI 2.0 spec PDFs to facsimile and readable formats.",
+        version: "0.1.0"
+    )
+
+    @Option(name: .long, help: "Output directory.")
+    var out: String = FileManager.default.currentDirectoryPath + "/Artifacts"
+
+    @Option(name: .long, help: "Rendering DPI.")
+    var dpi: Double = 220
+
+    @Flag(name: .long, help: "Enable strict mode.")
+    var strict: Bool = false
+
+    @Option(name: [.short, .long], help: "Verbosity level.")
+    var verbose: Int = 0
+
+    @Argument(help: "PDF documents to process.")
+    var docs: [String] = []
+
+    mutating func run() throws {
+        let args = Args(
+            out: URL(fileURLWithPath: out, isDirectory: true),
+            dpi: CGFloat(dpi),
+            strict: strict,
+            verbose: verbose,
+            docs: docs.map { URL(fileURLWithPath: $0) }
+        )
+        try export(args: args)
+    }
 }
 
