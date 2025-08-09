@@ -1,0 +1,19 @@
+Use AGENT.md in THIS directory (workspace/). Work only here.
+
+Goal:
+- Build the macOS PDFKit SwiftPM app and core library for a MIDI2 Reader.
+- Two-track export (facsimile + readable) with 📎 deep-link to facsimile.
+- Preserve wording; stable anchors; ruled tables → Markdown.
+
+Operate:
+1) Print a numbered plan; wait for my OK before edits/commands.
+2) Implement incrementally, using ../tutorials/ as guidance (read-only).
+3) Run: swift build -c release
+4) If build fails, quote errors and apply minimal fixes (≤3 attempts).
+5) Add Export Site…; write outputs under ./Artifacts/
+6) Use ../scripts/* for PRs (after commit).
+
+Guardrails:
+- Do NOT touch ../reference/ or ../tutorials/
+- Allowed: swift build/run, git add/commit/push (inside workspace only)
+- Ask before running commands.
