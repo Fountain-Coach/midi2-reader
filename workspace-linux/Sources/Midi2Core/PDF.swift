@@ -4,8 +4,15 @@ import CPoppler
 import CoreGraphics
 #else
 public typealias CGPDFPage = OpaquePointer
-public typealias CGPDFBox = Int32
 public typealias CGContext = OpaquePointer
+
+public enum CGPDFBox: Int32 {
+    case mediaBox = 0
+    case cropBox = 1
+    case bleedBox = 2
+    case trimBox = 3
+    case artBox = 4
+}
 #endif
 
 public protocol PDFDocument {
@@ -48,7 +55,7 @@ public struct PopplerPDFDocument: PDFDocument {
 }
 
 public struct PopplerPDFPage: PDFPage {
-    private let page: OpaquePointer
+    let page: OpaquePointer
     init(page: OpaquePointer) { self.page = page }
 
     public var string: String? {
@@ -66,7 +73,7 @@ public struct PopplerPDFPage: PDFPage {
     }
 
     public func draw(with box: CGPDFBox, to context: CGContext) {
-        // Rendering via Poppler requires Cairo; not yet implemented.
+        poppler_page_render(page, context)
     }
 
     public func rect(for range: NSRange) -> CGRect? { nil }
