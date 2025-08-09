@@ -9,7 +9,7 @@ public struct TextLine: Codable, Sendable, Equatable {
 
 public enum TextExtractor {
     public static func extract(document pdf: PDFDocument) -> [TextLine] {
-        // Prefer CGPDFScanner-based extraction for deterministic order; fall back to PDFKit newlines.
+        // Prefer CGPDFScanner-based extraction for deterministic order; fall back to splitting page.string by newlines.
         var lines: [TextLine] = []
         var usedCG = false
         for pi in 0..<pdf.pageCount {
@@ -18,11 +18,11 @@ public enum TextExtractor {
                 lines.append(contentsOf: mapToRanges(cgLines, on: page, pageIndex: pi))
                 usedCG = true
             } else {
-                lines.append(contentsOf: extractPageWithPDFKit(page: page, pageIndex: pi))
+                lines.append(contentsOf: extractPageWithStringSplit(page: page, pageIndex: pi))
             }
         }
         if !usedCG {
-            // All fell back to PDFKit; lines already include ranges
+            // All fell back to string splitting; lines already include ranges
             return lines
         }
         return lines
@@ -68,7 +68,7 @@ public enum TextExtractor {
     }
 
     // Fallback: split page.string by newlines
-    private static func extractPageWithPDFKit(page: PDFPage, pageIndex: Int) -> [TextLine] {
+    private static func extractPageWithStringSplit(page: PDFPage, pageIndex: Int) -> [TextLine] {
         var out: [TextLine] = []
         guard let full = page.string, !full.isEmpty else { return out }
         let scalars = Array(full)

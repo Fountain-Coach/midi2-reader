@@ -5,7 +5,16 @@ public struct TableExtractor {
     public struct TableCell { public var rect: CGRect; public var text: String }
     public struct Table { public var pageIndex: Int; public var cells: [[TableCell]] }
 
-    public static func extract(from page: PDFPage, pageIndex: Int, tolerance: CGFloat = 2.0) -> [Table] {
+    public static func extract(document pdf: PDFDocument, tolerance: CGFloat = 2.0) -> [Table] {
+        var tables: [Table] = []
+        for pi in 0..<pdf.pageCount {
+            guard let page = pdf.page(at: pi) else { continue }
+            tables.append(contentsOf: extract(page: page, pageIndex: pi, tolerance: tolerance))
+        }
+        return tables
+    }
+
+    private static func extract(page: PDFPage, pageIndex: Int, tolerance: CGFloat) -> [Table] {
         guard let cgPage = page.pageRef else { return [] }
         let content = CGPDFContentStreamCreateWithPage(cgPage)
         let optable = CGPDFOperatorTableCreate()!

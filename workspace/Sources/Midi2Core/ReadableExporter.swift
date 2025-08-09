@@ -69,25 +69,21 @@ public struct ReadableExporter {
 
         // Tables per page → Markdown blocks and nodes
         var tableCount = 0
-        for pi in 0..<pdf.pageCount {
-            guard let page = pdf.page(at: pi) else { continue }
-            let tables = TableExtractor.extract(from: page, pageIndex: pi)
-            for t in tables {
-                tableCount += 1
-                let mdTable = tableToMarkdown(t)
-                md.append("\n<a id=\"table-\(tableCount)\"></a>")
-                md.append(mdTable)
-                if let firstCell = t.cells.first?.first {
-                    if let loc = deepLink(for: firstCell.rect, pageIndex: pi) {
-                        md.append("[📎 table source](./facsimile/facsimile.html#\(loc))")
-                    }
-                    let span = Span(text: mdTable, bbox: firstCell.rect, sha256: sha256Hex(mdTable))
-                    let node = Node(id: "table-\(tableCount)", type: .table, title: nil, text: mdTable, spans: [span])
-                    nodes.append(node)
-                    nodePageIndex.append(pi)
+        for t in TableExtractor.extract(document: pdf) {
+            tableCount += 1
+            let mdTable = tableToMarkdown(t)
+            md.append("\n<a id=\"table-\(tableCount)\"></a>")
+            md.append(mdTable)
+            if let firstCell = t.cells.first?.first {
+                if let loc = deepLink(for: firstCell.rect, pageIndex: t.pageIndex) {
+                    md.append("[📎 table source](./facsimile/facsimile.html#\(loc))")
                 }
-                md.append("")
+                let span = Span(text: mdTable, bbox: firstCell.rect, sha256: sha256Hex(mdTable))
+                let node = Node(id: "table-\(tableCount)", type: .table, title: nil, text: mdTable, spans: [span])
+                nodes.append(node)
+                nodePageIndex.append(t.pageIndex)
             }
+            md.append("")
         }
 
         let out = md.joined(separator: "\n")

@@ -1,9 +1,6 @@
 import Foundation
 import CoreGraphics
 import Midi2Core
-#if canImport(PDFKit)
-import PDFKit
-#endif
 
 struct Args {
     var out: URL
