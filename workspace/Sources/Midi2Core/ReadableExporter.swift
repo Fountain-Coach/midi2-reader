@@ -1,13 +1,12 @@
 import Foundation
+import CoreGraphics
 #if canImport(CryptoKit)
 import CryptoKit
 #endif
 
 public struct ReadableExporter {
-#if canImport(PDFKit)
-    public static func export(docURL: URL, to docFolder: URL) throws {
-        let pdf = try PDFKitDocument(path: docURL.path)
-        let title = docURL.deletingPathExtension().lastPathComponent
+    public static func export(pdf: PDFDocument, docId: String, to docFolder: URL) throws {
+        let title = docId
 
         let textLines = TextExtractor.extract(document: pdf)
         let lines: [(pageIndex: Int, text: String, bbox: CGRect?)] = textLines
@@ -129,8 +128,12 @@ public struct ReadableExporter {
     // Helpers
     private static func sha256Hex(_ text: String) -> String {
         let data = Data(text.utf8)
+        #if canImport(CryptoKit)
         let hash = SHA256.hash(data: data)
         return hash.compactMap { String(format: "%02x", $0) }.joined()
+        #else
+        return String(text.hashValue)
+        #endif
     }
 
     private static func deepLink(for bbox: CGRect, pageIndex: Int) -> String? {
@@ -141,11 +144,4 @@ public struct ReadableExporter {
         let h = Int(bbox.size.height.rounded())
         return String(format: "p%03d-x%d-y%d-w%d-h%d", pageIndex + 1, x, y, w, h)
     }
-
-#else
-    public static func export(docURL: URL, to docFolder: URL) throws {
-        throw ExportError.unavailable
-    }
-    public enum ExportError: Error { case unavailable }
-#endif
 }

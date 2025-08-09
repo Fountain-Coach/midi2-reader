@@ -1,6 +1,9 @@
 import Foundation
+import CoreGraphics
 import Midi2Core
+#if canImport(PDFKit)
 import PDFKit
+#endif
 
 struct Args {
     var out: URL
@@ -35,9 +38,12 @@ func main() throws {
         exit(64)
     }
     try FileManager.default.createDirectory(at: args.out, withIntermediateDirectories: true)
+#if canImport(PDFKit)
     for doc in args.docs {
-        let dst = try FacsimileExporter.export(docURL: doc, to: args.out, dpi: args.dpi)
-        try ReadableExporter.export(docURL: doc, to: dst)
+        let pdf = try PDFKitDocument(path: doc.path)
+        let docId = doc.deletingPathExtension().lastPathComponent
+        let dst = try FacsimileExporter.export(pdf: pdf, docId: docId, to: args.out, dpi: args.dpi)
+        try ReadableExporter.export(pdf: pdf, docId: docId, to: dst)
         if args.strict {
             // Minimal strictness: ensure all nodes have a bbox
             let specURL = dst.appendingPathComponent("specdoc.json")
@@ -50,6 +56,10 @@ func main() throws {
             }
         }
     }
+#else
+    fputs("PDF processing unavailable on this platform\n", stderr)
+    exit(1)
+#endif
 }
 
 do { try main() } catch {
