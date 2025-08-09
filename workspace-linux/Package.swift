@@ -32,6 +32,18 @@ let package = Package(
         .testTarget(
             name: "Midi2CoreTests",
             dependencies: ["Midi2Core"]
+        ),
+        .testTarget(
+            name: "PDFTests",
+            dependencies: ["Midi2Core"]
+        ),
+        .testTarget(
+            name: "ExporterTests",
+            dependencies: ["Midi2Core"]
+        ),
+        .testTarget(
+            name: "CLITests",
+            dependencies: ["midi2-export"]
         )
     ]
 )

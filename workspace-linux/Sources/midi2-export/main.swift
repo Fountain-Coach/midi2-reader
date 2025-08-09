@@ -11,7 +11,7 @@ struct Args {
     var docs: [URL]
 }
 
-private func parsePageSpec(_ spec: String) -> [Int] {
+func parsePageSpec(_ spec: String) -> [Int] {
     var out: Set<Int> = []
     for part in spec.split(separator: ",") {
         if let dash = part.firstIndex(of: "-") {
@@ -27,7 +27,7 @@ private func parsePageSpec(_ spec: String) -> [Int] {
     return out.sorted()
 }
 
-func parseArgs() -> Args {
+func parseArgs(_ arguments: [String] = CommandLine.arguments) -> Args {
     var out = URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent("Artifacts", isDirectory: true)
     var dpi: Double = 220
     var pages: [Int]? = nil
@@ -35,7 +35,7 @@ func parseArgs() -> Args {
     var exportReadable = false
     var verbose = 0
     var docs: [URL] = []
-    var it = CommandLine.arguments.dropFirst().makeIterator()
+    var it = arguments.dropFirst().makeIterator()
     while let a = it.next() {
         switch a {
         case "--out": if let p = it.next() { out = URL(fileURLWithPath: p, isDirectory: true) }
