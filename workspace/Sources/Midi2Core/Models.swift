@@ -5,11 +5,13 @@ public struct Span: Sendable, Codable, Equatable {
     public var text: String
     public var bbox: CGRect? // PDF page-space bbox; filled later
     public var sha256: String? // optional precomputed hash
+    public var fragments: [CGRect]? // glyph-level bounding rects (optional)
 
-    public init(text: String, bbox: CGRect? = nil, sha256: String? = nil) {
+    public init(text: String, bbox: CGRect? = nil, sha256: String? = nil, fragments: [CGRect]? = nil) {
         self.text = text
         self.bbox = bbox
         self.sha256 = sha256
+        self.fragments = fragments
     }
 }
 
@@ -46,4 +48,3 @@ public struct SpecDoc: Sendable, Codable, Equatable {
         self.nodes = nodes
     }
 }
-
