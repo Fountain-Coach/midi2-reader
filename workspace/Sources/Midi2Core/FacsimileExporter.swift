@@ -9,9 +9,7 @@ import UniformTypeIdentifiers
 
 public struct FacsimileExporter {
 #if canImport(ImageIO)
-    public static func export(docURL: URL, to targetRoot: URL, dpi: CGFloat = 220) throws -> URL {
-        let pdf = try PDFKitDocument(path: docURL.path)
-        let docId = docURL.deletingPathExtension().lastPathComponent
+    public static func export(pdf: PDFDocument, docId: String, to targetRoot: URL, dpi: CGFloat = 220) throws -> URL {
         let docFolder = targetRoot.appendingPathComponent(safeSlug(docId), isDirectory: true)
         let facsimileFolder = docFolder.appendingPathComponent("facsimile", isDirectory: true)
         try FileManager.default.createDirectory(at: facsimileFolder, withIntermediateDirectories: true)
@@ -148,7 +146,7 @@ public struct FacsimileExporter {
 
     public enum ExportError: Error { case loadFailed, renderFailed }
 #else
-    public static func export(docURL: URL, to targetRoot: URL, dpi: CGFloat = 220) throws -> URL {
+    public static func export(pdf: PDFDocument, docId: String, to targetRoot: URL, dpi: CGFloat = 220) throws -> URL {
         throw ExportError.unavailable
     }
     public enum ExportError: Error { case unavailable }
