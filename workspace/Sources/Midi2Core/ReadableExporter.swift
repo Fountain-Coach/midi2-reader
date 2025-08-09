@@ -10,15 +10,10 @@ public struct ReadableExporter {
         guard let pdf = PDFDocument(url: docURL) else { throw ExportError.loadFailed }
         let title = docURL.deletingPathExtension().lastPathComponent
 
-        var lines: [(pageIndex: Int, text: String)] = []
-        for i in 0..<pdf.pageCount {
-            if let page = pdf.page(at: i), let s = page.string {
-                let parts = s.components(separatedBy: .newlines).map { $0.trimmingCharacters(in: .whitespaces) }
-                for part in parts where !part.isEmpty {
-                    lines.append((i, part))
-                }
-            }
-        }
+        let textLines = TextExtractor.extract(document: pdf)
+        let lines: [(pageIndex: Int, text: String, bbox: CGRect?)] = textLines
+            .map { (pageIndex: $0.pageIndex, text: $0.text.trimmingCharacters(in: .whitespaces), bbox: $0.bbox) }
+            .filter { !$0.text.isEmpty }
 
         // Build markdown
         var md: [String] = []
@@ -29,19 +24,17 @@ public struct ReadableExporter {
         var nodes: [Node] = []
         var nodePageIndex: [Int] = []
 
-        for (pi, line) in lines {
+        for (pi, line, bbox) in lines {
             if let h = detectHeading(line) {
                 let anchor = anchorForHeading(number: h.number, title: h.title)
                 items.append(Item(level: h.level, number: h.number, title: h.title, anchor: anchor))
                 // node with heading type
-                let bbox = findBBox(for: line, in: pdf, pageIndex: pi)
                 let span = Span(text: line, bbox: bbox, sha256: sha256Hex(line))
                 let node = Node(id: anchor, type: .heading(level: h.level), title: h.title, text: line, spans: [span])
                 nodes.append(node)
                 nodePageIndex.append(pi)
             } else {
                 let anchor = "para-\(nodes.count+1)"
-                let bbox = findBBox(for: line, in: pdf, pageIndex: pi)
                 let span = Span(text: line, bbox: bbox, sha256: sha256Hex(line))
                 let node = Node(id: anchor, type: .paragraph, title: nil, text: line, spans: [span])
                 nodes.append(node)
@@ -113,7 +106,7 @@ public struct ReadableExporter {
 
         // provenance.json
         let prov = Provenance(
-            documentSHA256: sha256Hex(pdf.string ?? ""),
+            documentSHA256: sha256Hex(textLines.map { $0.text }.joined(separator: "\n")),
             pageCount: pdf.pageCount,
             nodeCount: nodes.count,
             headingCount: nodes.filter { if case .heading = $0.type { return true } else { return false } }.count,
@@ -139,20 +132,6 @@ public struct ReadableExporter {
         let data = Data(text.utf8)
         let hash = SHA256.hash(data: data)
         return hash.compactMap { String(format: "%02x", $0) }.joined()
-    }
-
-    private static func findBBox(for text: String, in pdf: PDFDocument, pageIndex: Int) -> CGRect? {
-        // Try to find selection for the given text on a page; may be approximate
-        guard let page = pdf.page(at: pageIndex) else { return nil }
-        let selections = pdf.findString(text, withOptions: [.caseInsensitive])
-        // choose first selection on same page, otherwise nil
-        for sel in selections {
-            if let selPage = sel.pages.first, selPage == page {
-                let rect = sel.bounds(for: page)
-                if rect.width > 1 && rect.height > 1 { return rect }
-            }
-        }
-        return nil
     }
 
     private static func deepLink(for bbox: CGRect, pageIndex: Int) -> String? {

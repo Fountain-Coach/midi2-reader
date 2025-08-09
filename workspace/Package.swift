@@ -7,6 +7,7 @@ let package = Package(
     products: [
         .library(name: "Midi2Core", targets: ["Midi2Core"]),
         .executable(name: "MIDI2SpecReader", targets: ["MIDI2SpecReader"]),
+        .executable(name: "midi2-export", targets: ["midi2-export"]),
     ],
     targets: [
         .target(
@@ -17,6 +18,11 @@ let package = Package(
             name: "MIDI2SpecReader",
             dependencies: ["Midi2Core"],
             path: "Sources/MIDI2SpecReader"
+        ),
+        .executableTarget(
+            name: "midi2-export",
+            dependencies: ["Midi2Core"],
+            path: "Sources/midi2-export"
         ),
         .testTarget(
             name: "Midi2CoreTests",
