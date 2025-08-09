@@ -81,8 +81,4 @@ swift run MIDI2SpecReader
 * Tables: ruled-grid detection is stubbed and may need tuning per doc family.
 * Planned: search, strict mode for CI, and per-section file splitting.
 
----
 
-## Contributing / Development
-
-The repository ships with a **staged** layout so real development stays separate from reference snapshots and tutorials. See **DEVELOPING.md**.
