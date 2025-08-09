@@ -1,13 +1,12 @@
 import Foundation
-#if canImport(PDFKit)
-import PDFKit
+#if canImport(CryptoKit)
 import CryptoKit
 #endif
 
 public struct ReadableExporter {
 #if canImport(PDFKit)
     public static func export(docURL: URL, to docFolder: URL) throws {
-        guard let pdf = PDFDocument(url: docURL) else { throw ExportError.loadFailed }
+        let pdf = try PDFKitDocument(path: docURL.path)
         let title = docURL.deletingPathExtension().lastPathComponent
 
         let textLines = TextExtractor.extract(document: pdf)
