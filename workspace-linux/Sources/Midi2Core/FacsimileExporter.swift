@@ -11,13 +11,25 @@ public struct FacsimileExporter {
     ///   - targetRoot: Destination root folder where the doc folder will be
     ///     created.
     ///   - dpi: Rendering resolution (sRGB) in dots-per-inch.
-    public static func export(pdf: PDFDocument, docId: String, to targetRoot: URL, dpi: Double = 220) throws -> URL {
+    ///   - pages: Optional 1-based list of pages to render; defaults to all pages.
+    public static func export(pdf: PDFDocument, docId: String, to targetRoot: URL, dpi: Double = 220, pages: [Int]? = nil) throws -> URL {
         let docFolder = targetRoot.appendingPathComponent(safeSlug(docId), isDirectory: true)
         let facsimileFolder = docFolder.appendingPathComponent("facsimile", isDirectory: true)
         try FileManager.default.createDirectory(at: facsimileFolder, withIntermediateDirectories: true)
 
+        // Determine page indices (0-based) to render.
+        let pageIndices: [Int]
+        if let pages = pages, !pages.isEmpty {
+            pageIndices = pages
+                .filter { $0 > 0 && $0 <= pdf.pageCount }
+                .sorted()
+                .map { $0 - 1 }
+        } else {
+            pageIndices = Array(0..<pdf.pageCount)
+        }
+
         var pageEntries: [String] = []
-        for i in 0..<pdf.pageCount {
+        for i in pageIndices {
             guard let page = pdf.page(at: i) else { continue }
             let fileName = String(format: "p%03d.png", i + 1)
             let outURL = facsimileFolder.appendingPathComponent(fileName)
