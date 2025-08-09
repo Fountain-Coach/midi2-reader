@@ -1,8 +1,5 @@
 import Foundation
 import CoreGraphics
-#if canImport(PDFKit)
-import PDFKit
-
 public struct TextLine: Codable, Sendable, Equatable {
     public let pageIndex: Int
     public let range: NSRange
@@ -62,8 +59,7 @@ public enum TextExtractor {
             guard !s.isEmpty else { continue }
             let range = nsFull.range(of: s, options: [], range: NSRange(location: searchLoc, length: nsFull.length - searchLoc))
             if range.location != NSNotFound {
-                let sel = page.selection(for: range)
-                let box = sel?.bounds(for: page)
+                let box = page.rect(for: range)
                 out.append(TextLine(pageIndex: pageIndex, range: range, text: s, bbox: box))
                 searchLoc = range.location + range.length
             }
@@ -84,8 +80,7 @@ public enum TextExtractor {
                 if length > 0 {
                     let nsr = NSRange(location: start, length: length)
                     let s = (full as NSString).substring(with: nsr)
-                    let sel = page.selection(for: nsr)
-                    let box = sel?.bounds(for: page)
+                    let box = page.rect(for: nsr)
                     out.append(TextLine(pageIndex: pageIndex, range: nsr, text: s, bbox: box))
                 }
                 start = idx + 1
@@ -172,5 +167,3 @@ private func op_ET(_ scanner: CGPDFScannerRef, _ info: UnsafeMutableRawPointer?)
     let ctx = Unmanaged<CGTextCollector>.fromOpaque(info).takeUnretainedValue()
     ctx.flush()
 }
-
-#endif

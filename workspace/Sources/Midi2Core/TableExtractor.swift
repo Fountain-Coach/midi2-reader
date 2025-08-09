@@ -1,14 +1,10 @@
 import Foundation
 import CoreGraphics
-#if canImport(PDFKit)
-import PDFKit
-#endif
 
 public struct TableExtractor {
     public struct TableCell { public var rect: CGRect; public var text: String }
     public struct Table { public var pageIndex: Int; public var cells: [[TableCell]] }
 
-    #if canImport(PDFKit)
     public static func extract(from page: PDFPage, pageIndex: Int, tolerance: CGFloat = 2.0) -> [Table] {
         guard let cgPage = page.pageRef else { return [] }
         let content = CGPDFContentStreamCreateWithPage(cgPage)
@@ -68,14 +64,13 @@ public struct TableExtractor {
             var row: [TableCell] = []
             for c in 0..<(cols.count - 1) {
                 let rect = CGRect(x: cols[c], y: rows[r], width: cols[c+1]-cols[c], height: rows[r+1]-rows[r])
-                let text = page.selection(for: rect)?.string?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                let text = page.text(in: rect).trimmingCharacters(in: .whitespacesAndNewlines)
                 row.append(TableCell(rect: rect, text: text))
             }
             cellRows.append(row)
         }
         return [Table(pageIndex: pageIndex, cells: cellRows)]
     }
-    #endif
 }
 
 // MARK: - Scanner internals
@@ -109,7 +104,6 @@ private func cluster(uniqueValues: [CGFloat], tol: CGFloat) -> [CGFloat] {
 }
 
 // MARK: - Markdown emission
-#if canImport(PDFKit)
 public func tableToMarkdown(_ table: TableExtractor.Table) -> String {
     let rows = table.cells
     guard let first = rows.first else { return "" }
@@ -128,4 +122,3 @@ public func tableToMarkdown(_ table: TableExtractor.Table) -> String {
 private func sanitize(_ s: String) -> String {
     s.replacingOccurrences(of: "|", with: "\\|")
 }
-#endif

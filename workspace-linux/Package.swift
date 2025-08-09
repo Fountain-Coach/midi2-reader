@@ -8,8 +8,24 @@ let package = Package(
         .executable(name: "midi2-export", targets: ["midi2-export"])
     ],
     targets: [
-        .target(name: "Midi2Core"),
-        .executableTarget(name: "midi2-export", dependencies: ["Midi2Core"]),
-        .testTarget(name: "Midi2CoreTests", dependencies: ["Midi2Core"])
+        .systemLibrary(
+            name: "CPoppler",
+            pkgConfig: "poppler-glib",
+            providers: [
+                .apt(["libpoppler-glib-dev"])
+            ]
+        ),
+        .target(
+            name: "Midi2Core",
+            dependencies: ["CPoppler"]
+        ),
+        .executableTarget(
+            name: "midi2-export",
+            dependencies: ["Midi2Core"]
+        ),
+        .testTarget(
+            name: "Midi2CoreTests",
+            dependencies: ["Midi2Core"]
+        )
     ]
 )

@@ -1,16 +1,16 @@
 import Foundation
-#if canImport(PDFKit)
-import PDFKit
+import CoreGraphics
+#if canImport(ImageIO)
 import ImageIO
+#endif
+#if canImport(UniformTypeIdentifiers)
 import UniformTypeIdentifiers
 #endif
 
 public struct FacsimileExporter {
-#if canImport(PDFKit)
+#if canImport(ImageIO)
     public static func export(docURL: URL, to targetRoot: URL, dpi: CGFloat = 220) throws -> URL {
-        guard let pdf = PDFDocument(url: docURL) else {
-            throw ExportError.loadFailed
-        }
+        let pdf = try PDFKitDocument(path: docURL.path)
         let docId = docURL.deletingPathExtension().lastPathComponent
         let docFolder = targetRoot.appendingPathComponent(safeSlug(docId), isDirectory: true)
         let facsimileFolder = docFolder.appendingPathComponent("facsimile", isDirectory: true)
