@@ -1,0 +1,20 @@
+Use AGENT.md at the repo root.
+
+Goal:
+- Build the macOS PDFKit SwiftPM app `MIDI2SpecReader` and its core library.
+- Implement the two-track export: FACSIMILE (page renders + overlays) and READABLE (anchors + ToC + tables) with deep-links to the facsimile.
+- Preserve normative wording; parser-only (no OCR).
+
+Operate like this:
+1) Print a numbered plan with files to edit/create; wait for my OK.
+2) Make changes.
+3) Run: swift build -c release
+   - If the build fails, quote each error and apply minimal fixes; re-run until green.
+4) Run the app and wire up Export Site… to produce Artifacts/ for opened PDFs.
+5) Create/Update Artifacts/QA.md and provenance.json.
+6) Stage and open/update a PR using scripts/commit_pr.sh (or scripts/smart_pr.sh).
+
+Guardrails:
+- Work ONLY inside this repo. Ask before running commands.
+- Allowed: swift build/run, git add/commit/push, gh pr create.
+- Never: sudo, brew install, curl|sh, rm -rf outside repo.
